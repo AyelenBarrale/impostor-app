@@ -223,9 +223,22 @@ export const subscribeToGameRoom = (roomId: string, callback: (room: any) => voi
     .channel(`room-${roomId}`)
     .on('postgres_changes', 
       { event: '*', schema: 'public', table: 'game_rooms', filter: `id=eq.${roomId}` },
-      (payload) => {
+      async (payload) => {
         console.log('Room data changed:', payload);
-        callback(payload.new);
+        // Reload complete room data including players
+        const { data: room } = await supabase
+          .from('game_rooms')
+          .select(`
+            *,
+            players (*)
+          `)
+          .eq('id', roomId)
+          .single();
+        
+        if (room) {
+          console.log('Reloaded room data after game_rooms change:', room);
+          callback(room);
+        }
       }
     )
     .on('postgres_changes',

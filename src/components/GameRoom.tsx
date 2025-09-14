@@ -28,15 +28,6 @@ const GameRoomComponent: React.FC<GameRoomProps> = ({
     if (room) {
       setLocalRoom(room);
       setIsLoading(false);
-      
-      // Subscribe to real-time updates for this room
-      const subscription = subscribeToGameRoom(room.id, (updatedRoom) => {
-        setLocalRoom(updatedRoom);
-      });
-      
-      return () => {
-        subscription.unsubscribe();
-      };
     } else {
       // Si no hay sala, redirigir al inicio después de un breve delay
       const timer = setTimeout(() => {
@@ -46,6 +37,24 @@ const GameRoomComponent: React.FC<GameRoomProps> = ({
       return () => clearTimeout(timer);
     }
   }, [room, navigate]);
+
+  // Separate effect for subscription to avoid re-subscribing on every room change
+  useEffect(() => {
+    if (!room?.id) return;
+
+    console.log('Setting up subscription for room:', room.id);
+    
+    // Subscribe to real-time updates for this room
+    const subscription = subscribeToGameRoom(room.id, (updatedRoom) => {
+      console.log('Room data updated via subscription:', updatedRoom);
+      setLocalRoom(updatedRoom);
+    });
+    
+    return () => {
+      console.log('Cleaning up subscription for room:', room.id);
+      subscription.unsubscribe();
+    };
+  }, [room?.id]); // Only depend on room.id, not the entire room object
 
   const updateRoom = async (updatedRoom: GameRoomType) => {
     setLocalRoom(updatedRoom);
