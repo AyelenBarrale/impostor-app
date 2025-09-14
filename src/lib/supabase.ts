@@ -217,17 +217,21 @@ export const updateGameRoom = async (roomId: string, updates: any) => {
 };
 
 export const subscribeToGameRoom = (roomId: string, callback: (room: any) => void) => {
+  console.log('Setting up subscription for room:', roomId);
+  
   const subscription = supabase
     .channel(`room-${roomId}`)
     .on('postgres_changes', 
       { event: '*', schema: 'public', table: 'game_rooms', filter: `id=eq.${roomId}` },
       (payload) => {
+        console.log('Room data changed:', payload);
         callback(payload.new);
       }
     )
     .on('postgres_changes',
       { event: '*', schema: 'public', table: 'players', filter: `room_id=eq.${roomId}` },
-      async () => {
+      async (payload) => {
+        console.log('Players data changed:', payload);
         // Reload room data when players change
         const { data: room } = await supabase
           .from('game_rooms')
@@ -238,13 +242,19 @@ export const subscribeToGameRoom = (roomId: string, callback: (room: any) => voi
           .eq('id', roomId)
           .single();
         
-        if (room) callback(room);
+        if (room) {
+          console.log('Reloaded room data:', room);
+          callback(room);
+        }
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      console.log('Subscription status:', status);
+    });
 
   return {
     unsubscribe: () => {
+      console.log('Unsubscribing from room:', roomId);
       supabase.removeChannel(subscription);
     }
   };
