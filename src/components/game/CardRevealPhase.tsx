@@ -15,16 +15,18 @@ const CardRevealPhase: React.FC<CardRevealPhaseProps> = ({
   onLeaveRoom,
   currentPlayerId
 }) => {
+  try {
   const [showInstructions, setShowInstructions] = useState(true);
   const [hasSeenCard, setHasSeenCard] = useState(false);
 
-  // Add safety check for room data FIRST
+  // Add comprehensive safety checks FIRST
   console.log('CardRevealPhase - room:', room);
   console.log('CardRevealPhase - room.players:', room?.players);
   console.log('CardRevealPhase - currentPlayerId:', currentPlayerId);
   
-  if (!room || !room.players) {
-    console.log('CardRevealPhase - Room or players not available, showing loading state');
+  // Multiple safety checks
+  if (!room) {
+    console.log('CardRevealPhase - Room is null/undefined');
     return (
       <div className="text-center">
         <div className="card">
@@ -35,7 +37,39 @@ const CardRevealPhase: React.FC<CardRevealPhaseProps> = ({
     );
   }
 
-  const currentPlayer = currentPlayerId ? room.players.find(p => p.id === currentPlayerId) : null;
+  if (!room.players) {
+    console.log('CardRevealPhase - room.players is null/undefined');
+    return (
+      <div className="text-center">
+        <div className="card">
+          <h2>Cargando datos de la sala...</h2>
+          <p>Espera un momento mientras se cargan los datos.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!Array.isArray(room.players)) {
+    console.log('CardRevealPhase - room.players is not an array:', typeof room.players);
+    return (
+      <div className="text-center">
+        <div className="card">
+          <h2>Cargando datos de la sala...</h2>
+          <p>Espera un momento mientras se cargan los datos.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Safe currentPlayer lookup
+  let currentPlayer = null;
+  try {
+    currentPlayer = currentPlayerId ? room.players.find(p => p && p.id === currentPlayerId) : null;
+  } catch (error) {
+    console.error('CardRevealPhase - Error finding current player:', error);
+    currentPlayer = null;
+  }
+  
   console.log('CardRevealPhase - currentPlayer:', currentPlayer);
 
   const startGame = () => {
@@ -132,6 +166,23 @@ const CardRevealPhase: React.FC<CardRevealPhaseProps> = ({
       </div>
     </div>
   );
+  } catch (error) {
+    console.error('CardRevealPhase - Critical error:', error);
+    return (
+      <div className="text-center">
+        <div className="card">
+          <h2>Error en el componente</h2>
+          <p>Ha ocurrido un error inesperado. Por favor, recarga la página.</p>
+          <button 
+            className="btn mt-4"
+            onClick={() => window.location.reload()}
+          >
+            Recargar Página
+          </button>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default CardRevealPhase;
