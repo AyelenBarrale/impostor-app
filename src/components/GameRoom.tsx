@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GameRoom as GameRoomType, GAME_CONFIG } from '../types/game';
 import { getRandomWord } from '../data/words';
-import { subscribeToGameRoom, updateGameRoom } from '../lib/supabase';
+import { subscribeToGameRoom, updateGameRoom, supabase } from '../lib/supabase';
 import WaitingRoom from './game/WaitingRoom';
 import CardRevealPhase from './game/CardRevealPhase';
 import DrawingPhase from './game/DrawingPhase';
@@ -64,6 +64,19 @@ const GameRoomComponent: React.FC<GameRoomProps> = ({
         impostor_word: updatedRoom.impostorWord,
         normal_word: updatedRoom.normalWord
       });
+      
+      // Also update players in the database
+      for (const player of updatedRoom.players) {
+        await supabase
+          .from('players')
+          .update({
+            is_impostor: player.isImpostor,
+            has_seen_card: player.hasSeenCard,
+            attempts: player.attempts,
+            is_active: player.isActive
+          })
+          .eq('id', player.id);
+      }
     } catch (error) {
       console.error('Error updating room in database:', error);
     }
@@ -209,6 +222,7 @@ const GameRoomComponent: React.FC<GameRoomProps> = ({
             room={localRoom}
             onStartDrawing={startDrawingPhase}
             onLeaveRoom={leaveRoom}
+            currentPlayerId={localStorage.getItem('currentPlayerId') || undefined}
           />
         );
       case 'drawing':

@@ -1,39 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { GameRoom as GameRoomType } from '../../types/game';
+import PlayerCard from './PlayerCard';
 
 interface CardRevealPhaseProps {
   room: GameRoomType;
   onStartDrawing: () => void;
   onLeaveRoom: () => void;
+  currentPlayerId?: string;
 }
 
 const CardRevealPhase: React.FC<CardRevealPhaseProps> = ({ 
   room, 
   onStartDrawing, 
-  onLeaveRoom 
+  onLeaveRoom,
+  currentPlayerId
 }) => {
-  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
-  const [allPlayersHaveSeenCard, setAllPlayersHaveSeenCard] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
+  const [hasSeenCard, setHasSeenCard] = useState(false);
 
-  const currentPlayer = room.players[currentPlayerIndex];
-  const isCurrentPlayer = true; // In a real app, this would check if it's the current user
-
-  useEffect(() => {
-    // Check if all players have seen their cards
-    const allSeen = room.players.every(player => player.hasSeenCard);
-    setAllPlayersHaveSeenCard(allSeen);
-  }, [room.players]);
-
-  const handleCardReveal = () => {
-    // In a real app, this would update the player's hasSeenCard status
-    // For now, we'll just simulate it
-    if (currentPlayerIndex < room.players.length - 1) {
-      setCurrentPlayerIndex(currentPlayerIndex + 1);
-    } else {
-      setAllPlayersHaveSeenCard(true);
-    }
-  };
+  const currentPlayer = currentPlayerId ? room.players.find(p => p.id === currentPlayerId) : null;
 
   const startGame = () => {
     onStartDrawing();
@@ -66,14 +51,17 @@ const CardRevealPhase: React.FC<CardRevealPhaseProps> = ({
     );
   }
 
-  if (!allPlayersHaveSeenCard) {
+  if (!hasSeenCard && currentPlayer) {
     return (
       <div className="text-center">
         <h1 className="text-3xl font-bold mb-6">Revelación de Cartas</h1>
         
+        {/* Player Card - Show individual word */}
+        <PlayerCard room={room} currentPlayerId={currentPlayerId} />
+        
         <div className="card" style={{ maxWidth: '500px', margin: '0 auto' }}>
           <h2 className="text-xl font-bold mb-4">
-            Turno de: {currentPlayer.name} {currentPlayer.avatar}
+            {currentPlayer.name} {currentPlayer.avatar}
           </h2>
           
           <div className="mb-6">
@@ -91,7 +79,7 @@ const CardRevealPhase: React.FC<CardRevealPhaseProps> = ({
 
           <button 
             className="btn"
-            onClick={handleCardReveal}
+            onClick={() => setHasSeenCard(true)}
           >
             He visto mi palabra
           </button>
