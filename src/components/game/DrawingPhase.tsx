@@ -20,8 +20,20 @@ const DrawingPhase: React.FC<DrawingPhaseProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [timeLeft, setTimeLeft] = useState(room.timeLeft);
-  const [currentPlayer, setCurrentPlayer] = useState(room.players[room.currentPlayerIndex]);
+  const [currentPlayer, setCurrentPlayer] = useState(room.players?.[room.currentPlayerIndex]);
   const [attempt, setAttempt] = useState(1);
+
+  // Add safety check for room data
+  if (!room || !room.players || room.players.length === 0) {
+    return (
+      <div className="text-center">
+        <div className="card">
+          <h2>Cargando datos de la sala...</h2>
+          <p>Espera un momento mientras se cargan los datos.</p>
+        </div>
+      </div>
+    );
+  }
 
   const nextPlayer = useCallback(async () => {
     // Save drawing to Supabase
@@ -45,9 +57,11 @@ const DrawingPhase: React.FC<DrawingPhaseProps> = ({
   }, [nextPlayer]);
 
   useEffect(() => {
-    setCurrentPlayer(room.players[room.currentPlayerIndex]);
-    setTimeLeft(room.timeLeft);
-    setAttempt(room.players[room.currentPlayerIndex].attempts + 1);
+    if (room.players && room.players[room.currentPlayerIndex]) {
+      setCurrentPlayer(room.players[room.currentPlayerIndex]);
+      setTimeLeft(room.timeLeft);
+      setAttempt(room.players[room.currentPlayerIndex].attempts + 1);
+    }
   }, [room.currentPlayerIndex, room.players, room.timeLeft]);
 
   useEffect(() => {

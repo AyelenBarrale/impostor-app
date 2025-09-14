@@ -18,7 +18,19 @@ const CardRevealPhase: React.FC<CardRevealPhaseProps> = ({
   const [showInstructions, setShowInstructions] = useState(true);
   const [hasSeenCard, setHasSeenCard] = useState(false);
 
-  const currentPlayer = currentPlayerId ? room.players.find(p => p.id === currentPlayerId) : null;
+  const currentPlayer = currentPlayerId && room.players ? room.players.find(p => p.id === currentPlayerId) : null;
+
+  // Add safety check for room data
+  if (!room || !room.players) {
+    return (
+      <div className="text-center">
+        <div className="card">
+          <h2>Cargando datos de la sala...</h2>
+          <p>Espera un momento mientras se cargan los datos.</p>
+        </div>
+      </div>
+    );
+  }
 
   const startGame = () => {
     onStartDrawing();
