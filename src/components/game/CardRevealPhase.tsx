@@ -18,10 +18,13 @@ const CardRevealPhase: React.FC<CardRevealPhaseProps> = ({
   const [showInstructions, setShowInstructions] = useState(true);
   const [hasSeenCard, setHasSeenCard] = useState(false);
 
-  const currentPlayer = currentPlayerId && room.players ? room.players.find(p => p.id === currentPlayerId) : null;
-
-  // Add safety check for room data
+  // Add safety check for room data FIRST
+  console.log('CardRevealPhase - room:', room);
+  console.log('CardRevealPhase - room.players:', room?.players);
+  console.log('CardRevealPhase - currentPlayerId:', currentPlayerId);
+  
   if (!room || !room.players) {
+    console.log('CardRevealPhase - Room or players not available, showing loading state');
     return (
       <div className="text-center">
         <div className="card">
@@ -31,6 +34,9 @@ const CardRevealPhase: React.FC<CardRevealPhaseProps> = ({
       </div>
     );
   }
+
+  const currentPlayer = currentPlayerId ? room.players.find(p => p.id === currentPlayerId) : null;
+  console.log('CardRevealPhase - currentPlayer:', currentPlayer);
 
   const startGame = () => {
     onStartDrawing();

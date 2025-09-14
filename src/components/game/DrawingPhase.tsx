@@ -19,12 +19,17 @@ const DrawingPhase: React.FC<DrawingPhaseProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(room.timeLeft);
-  const [currentPlayer, setCurrentPlayer] = useState(room.players?.[room.currentPlayerIndex]);
+  const [timeLeft, setTimeLeft] = useState(room?.timeLeft || 0);
+  const [currentPlayer, setCurrentPlayer] = useState(null);
   const [attempt, setAttempt] = useState(1);
 
-  // Add safety check for room data
+  // Add safety check for room data FIRST
+  console.log('DrawingPhase - room:', room);
+  console.log('DrawingPhase - room.players:', room?.players);
+  console.log('DrawingPhase - currentPlayerId:', currentPlayerId);
+  
   if (!room || !room.players || room.players.length === 0) {
+    console.log('DrawingPhase - Room or players not available, showing loading state');
     return (
       <div className="text-center">
         <div className="card">
@@ -33,6 +38,11 @@ const DrawingPhase: React.FC<DrawingPhaseProps> = ({
         </div>
       </div>
     );
+  }
+
+  // Initialize currentPlayer safely
+  if (room.players[room.currentPlayerIndex]) {
+    setCurrentPlayer(room.players[room.currentPlayerIndex]);
   }
 
   const nextPlayer = useCallback(async () => {
